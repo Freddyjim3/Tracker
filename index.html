@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Content Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div>
+        <p class="eyebrow">Creator Workflow</p>
+        <h1>Content Tracker</h1>
+        <p class="sidebar-copy">Catch ideas fast, break them into tasks, and keep every post moving toward publish day.</p>
+      </div>
+
+      <nav class="nav" id="appNav">
+        <button class="nav-item active" data-view="dashboard">Dashboard</button>
+        <button class="nav-item" data-view="contents">Content List</button>
+        <button class="nav-item" data-view="calendar">Calendar</button>
+        <button class="nav-item" data-view="exports">Exports</button>
+      </nav>
+
+
+      <section class="sidebar-panel" id="authSection">
+        <h2>Account</h2>
+        <div class="auth-status" id="authStatus">Cloud setup required</div>
+        <form id="authForm" class="quick-form auth-form">
+          <label id="authEmailField">
+            Email
+            <input type="email" name="email" placeholder="you@example.com">
+          </label>
+          <label id="authPasswordField">
+            Password
+            <input type="password" name="password" placeholder="At least 6 characters">
+          </label>
+          <div class="inline-actions" id="authGuestActions">
+            <button type="button" class="mini-btn" id="loginBtn">Login</button>
+            <button type="button" class="mini-btn" id="registerBtn">Register</button>
+          </div>
+          <div class="inline-actions hidden" id="authUserActions">
+            <button type="button" class="mini-btn" id="logoutBtn">Logout</button>
+          </div>
+        </form>
+        <p class="muted small-copy" id="authHint">Add your Supabase URL and anon key in `supabase-config.js`.</p>
+      </section>
+
+      <section class="sidebar-panel" id="globalFiltersPanel">
+        <h2>Global Filters</h2>
+        <div class="global-filter-stack">
+          <label>
+            Project
+            <select id="globalProjectFilter"></select>
+          </label>
+          <label>
+            Channel
+            <select id="globalChannelFilter"></select>
+          </label>
+        </div>
+      </section>
+
+      <section class="sidebar-panel" id="uiInfoPanel">
+        <h2>UI Structure</h2>
+        <ul>
+          <li>Dashboard with summary cards and quick add</li>
+          <li>Content library with filters and task progress</li>
+          <li>Calendar-style deadline overview</li>
+          <li>CSV / HTML export controls by date or month</li>
+          <li>Delete content option in editor</li>
+        </ul>
+      </section>
+    </aside>
+
+    <main class="main" id="appMain">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">MVP</p>
+          <h2>Track ideas before they disappear</h2>
+        </div>
+        <div class="topbar-actions">
+          <button class="ghost-btn" id="seedDemo">Load Demo</button>
+          <button class="primary-btn" id="openContentModal">+ New Content</button>
+        </div>
+      </header>
+
+      <section class="view active" id="dashboardView">
+        <div class="stats-grid" id="statsGrid"></div>
+
+        <div class="section-grid">
+          <section class="panel wide">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Workflow</p>
+                <h3>Content Pipeline</h3>
+              </div>
+            </div>
+            <div class="board" id="board"></div>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Quick Add</p>
+                <h3>Capture Idea</h3>
+              </div>
+            </div>
+            <form id="quickAddForm" class="quick-form">
+              <label>
+                Title
+                <input type="text" name="title" placeholder="5 quick reel ideas for busy weeks" required>
+              </label>
+              <label>
+                Platform
+                <select name="platform">
+                  <option value="TikTok">TikTok</option>
+                  <option value="Facebook">Facebook</option>
+                  <option value="YouTube">YouTube</option>
+                  <option value="Instagram">Instagram</option>
+                </select>
+              </label>
+              <label>
+                Category
+                <input type="text" name="category" placeholder="Productivity">
+              </label>
+              <label>
+                Project
+                <div class="inline-field">
+                  <select name="project" id="quickProjectSelect"></select>
+                  <input type="text" name="newProject" placeholder="Add new project">
+                  <div class="inline-actions">
+                    <button type="button" class="mini-btn" data-meta-action="rename" data-meta-type="projects" data-select-target="quickProjectSelect">Rename</button>
+                    <button type="button" class="mini-btn danger-mini" data-meta-action="delete" data-meta-type="projects" data-select-target="quickProjectSelect">Delete</button>
+                  </div>
+                </div>
+              </label>
+              <label>
+                Channel
+                <div class="inline-field">
+                  <select name="channel" id="quickChannelSelect"></select>
+                  <input type="text" name="newChannel" placeholder="Add new channel">
+                  <div class="inline-actions">
+                    <button type="button" class="mini-btn" data-meta-action="rename" data-meta-type="channels" data-select-target="quickChannelSelect">Rename</button>
+                    <button type="button" class="mini-btn danger-mini" data-meta-action="delete" data-meta-type="channels" data-select-target="quickChannelSelect">Delete</button>
+                  </div>
+                </div>
+              </label>
+              <label>
+                Deadline
+                <input type="date" name="deadline">
+              </label>
+              <label>
+                Note
+                <textarea name="description" rows="4" placeholder="Main hook, angle, or reminder"></textarea>
+              </label>
+              <button type="submit" class="primary-btn full">Save Idea</button>
+            </form>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="contentsView">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Screen List</p>
+              <h3>Content Library</h3>
+            </div>
+            <div class="filters">
+              <input type="search" id="contentSearch" class="search-input" placeholder="Search title, notes, tags">
+              <select id="contentProjectFilter"></select>
+              <select id="contentChannelFilter"></select>
+              <select id="statusFilter">
+                <option value="all">All Status</option>
+                <option value="Idea Capture">Idea Capture</option>
+                <option value="Research & Validation">Research & Validation</option>
+                <option value="Script Writing">Script Writing</option>
+                <option value="Recording / Voiceover">Recording / Voiceover</option>
+                <option value="Video Editing">Video Editing</option>
+                <option value="Thumbnail Design">Thumbnail Design</option>
+                <option value="Upload & Publish">Upload & Publish</option>
+              </select>
+              <input type="month" id="monthFilter">
+            </div>
+          </div>
+          <div class="content-list" id="contentList"></div>
+        </section>
+      </section>
+
+      <section class="view" id="calendarView">
+        <section class="panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow">Schedule</p>
+              <h3>Deadline Calendar</h3>
+            </div>
+          </div>
+          <div class="calendar-list" id="calendarList"></div>
+        </section>
+      </section>
+
+      <section class="view" id="exportsView">
+        <div class="section-grid">
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Export System</p>
+                <h3>CSV / HTML Export</h3>
+              </div>
+            </div>
+            <form id="exportForm" class="quick-form">
+              <label>
+                Project
+                <select id="exportProjectFilter"></select>
+              </label>
+              <label>
+                Channel
+                <select id="exportChannelFilter"></select>
+              </label>
+              <label>
+                Start Date
+                <input type="date" id="exportStart">
+              </label>
+              <label>
+                End Date
+                <input type="date" id="exportEnd">
+              </label>
+              <label>
+                Month Shortcut
+                <input type="month" id="exportMonth">
+              </label>
+              <button type="button" class="primary-btn full" id="exportCsvBtn">Download CSV</button>
+              <button type="button" class="ghost-btn full" id="exportHtmlBtn">Download HTML</button>
+            </form>
+          </section>
+
+          <section class="panel">
+            <div class="panel-head">
+              <div>
+                <p class="eyebrow">Database Fields</p>
+                <h3>Content Schema</h3>
+              </div>
+            </div>
+            <div class="schema-list">
+              <div><strong>content</strong>: id, title, description, category, platform, status, priority, progress, createdAt, deadline, publishDate</div>
+              <div><strong>context</strong>: project, channel</div>
+              <div><strong>tasks</strong>: id, contentId, title, done</div>
+              <div><strong>tags</strong>: array of labels like Trending, Low Effort</div>
+              <div><strong>metrics</strong>: views, engagement, exportedAt</div>
+              <div><strong>assets</strong>: referenceLinks, notes</div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="contentModal">
+    <form method="dialog" class="modal-card" id="contentForm">
+      <div class="modal-head">
+        <div>
+          <p class="eyebrow">Detail Editor</p>
+          <h3 id="modalTitle">New Content</h3>
+        </div>
+        <button type="button" class="icon-btn" id="closeModal">x</button>
+      </div>
+
+      <input type="hidden" name="id">
+
+      <div class="modal-grid">
+        <label>
+          Title
+          <input type="text" name="title" required>
+        </label>
+        <label>
+          Platform
+          <select name="platform">
+            <option value="TikTok">TikTok</option>
+            <option value="Facebook">Facebook</option>
+            <option value="YouTube">YouTube</option>
+            <option value="Instagram">Instagram</option>
+          </select>
+        </label>
+        <label>
+          Category
+          <input type="text" name="category">
+        </label>
+        <label>
+          Project
+          <div class="inline-field">
+            <select name="project" id="modalProjectSelect"></select>
+            <input type="text" name="newProject" placeholder="Add new project">
+            <div class="inline-actions">
+              <button type="button" class="mini-btn" data-meta-action="rename" data-meta-type="projects" data-select-target="modalProjectSelect">Rename</button>
+              <button type="button" class="mini-btn danger-mini" data-meta-action="delete" data-meta-type="projects" data-select-target="modalProjectSelect">Delete</button>
+            </div>
+          </div>
+        </label>
+        <label>
+          Channel
+          <div class="inline-field">
+            <select name="channel" id="modalChannelSelect"></select>
+            <input type="text" name="newChannel" placeholder="Add new channel">
+            <div class="inline-actions">
+              <button type="button" class="mini-btn" data-meta-action="rename" data-meta-type="channels" data-select-target="modalChannelSelect">Rename</button>
+              <button type="button" class="mini-btn danger-mini" data-meta-action="delete" data-meta-type="channels" data-select-target="modalChannelSelect">Delete</button>
+            </div>
+          </div>
+        </label>
+        <label>
+          Priority
+          <select name="priority">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+          </select>
+        </label>
+        <label>
+          Status
+          <select name="status">
+            <option value="Idea Capture">Idea Capture</option>
+            <option value="Research & Validation">Research & Validation</option>
+            <option value="Script Writing">Script Writing</option>
+            <option value="Recording / Voiceover">Recording / Voiceover</option>
+            <option value="Video Editing">Video Editing</option>
+            <option value="Thumbnail Design">Thumbnail Design</option>
+            <option value="Upload & Publish">Upload & Publish</option>
+          </select>
+        </label>
+        <label>
+          Deadline
+          <input type="date" name="deadline">
+        </label>
+        <label>
+          Publish Date
+          <input type="date" name="publishDate">
+        </label>
+        <label>
+          Tags
+          <input type="text" name="tags" placeholder="Trending, Low Effort">
+        </label>
+      </div>
+
+      <label>
+        Description
+        <textarea name="description" rows="4"></textarea>
+      </label>
+
+      <label>
+        Notes
+        <textarea name="notes" rows="3" placeholder="Script, links, references"></textarea>
+      </label>
+
+      <label>
+        Tasks
+        <textarea name="tasksText" rows="5" placeholder="Research angle&#10;Write hook&#10;Edit video"></textarea>
+      </label>
+
+      <div class="modal-actions">
+        <button type="button" class="danger-btn hidden" id="deleteContentBtn">Delete</button>
+        <button type="submit" class="primary-btn">Save Content</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
